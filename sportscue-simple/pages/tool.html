@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SportsCue — Sports Annotation Studio</title>
+<link rel="icon" type="image/png" href="/logo.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #080e0b;
+    --surface: #0d1610;
+    --surface2: #142019;
+    --surface3: #1c2d22;
+    --border: #1e3828;
+    --accent: #3ecf6e;
+    --accent-dark: #2aaa55;
+    --accent2: #1a7fc4;
+    --accent2-dark: #1466a0;
+    --accent3: #ff5c3a;
+    --text: #ddeee4;
+    --text2: #7aa888;
+    --text3: #3a5c45;
+    --yellow: #ffd060;
+    --shield-blue: #1a6fb5;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 0 18px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    position: relative;
+  }
+  header::after {
+    content:'';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2) 0%, var(--accent) 50%, var(--accent2) 100%);
+  }
+
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-img {
+    width: 36px; height: 36px;
+    object-fit: contain;
+  }
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  .logo-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .logo-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-top: 1px;
+  }
+
+  .header-actions { display: flex; gap: 8px; }
+
+  .app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .video-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .video-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: #020806;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .upload-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+  .upload-zone:hover .upload-icon { color: var(--accent); }
+
+  .upload-icon {
+    font-size: 52px;
+    color: var(--text3);
+    transition: color 0.2s;
+  }
+  .upload-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--text3);
+  }
+  .upload-sub { font-size: 13px; color: var(--text3); }
+  .upload-cta {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 9px 24px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); cursor: pointer; transition: all 0.2s;
+  }
+  .upload-cta:hover { border-color: var(--accent); background: var(--surface3); }
+
+  #videoPlayer { width: 100%; height: 100%; object-fit: contain; display: none; }
+
+  .video-hud {
+    position: absolute; top: 10px; left: 10px;
+    display: flex; flex-direction: column; gap: 5px;
+    pointer-events: none;
+  }
+  .class-badge {
+    padding: 4px 10px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    display: none;
+  }
+  .range-hud {
+    display: none; align-items: center; gap: 7px;
+    padding: 5px 10px;
+    background: rgba(255,208,96,0.1); border: 1px solid var(--yellow);
+    color: var(--yellow);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .range-hud.on { display: flex; }
+  .pulse { width: 7px; height: 7px; background: var(--yellow); border-radius: 50%; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+
+  /* TIMELINE */
+  .timeline-wrap {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 10px 14px 8px;
+    flex-shrink: 0;
+  }
+  .timeline-controls {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    gap: 10px; margin-bottom: 8px;
+  }
+  .vc { display: flex; align-items: center; gap: 4px; }
+  .cb {
+    background: var(--surface3); border: 1px solid var(--border); color: var(--text);
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 12px; transition: all 0.15s; flex-shrink: 0;
+  }
+  .cb:hover { color: var(--accent); border-color: var(--accent); }
+  .speed-sel {
+    background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text2); padding: 0 6px; height: 30px;
+    font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  }
+  .td {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--accent); white-space: nowrap;
+  }
+  .tbar {
+    position: relative; height: 32px;
+    background: var(--surface2); border: 1px solid var(--border);
+    cursor: pointer; overflow: hidden;
+  }
+  .tprog {
+    position: absolute; top:0; left:0; bottom:0;
+    background: rgba(62,207,110,0.1); pointer-events: none;
+  }
+  .tneedle {
+    position: absolute; top:0; bottom:0; width: 2px;
+    background: var(--accent); pointer-events: none;
+    box-shadow: 0 0 6px var(--accent);
+  }
+  .tmarker {
+    position: absolute; top:0; bottom:0; width: 3px;
+    cursor: pointer; z-index: 5;
+  }
+  .tmarker:hover { opacity: .7; }
+  .trange {
+    position: absolute; top: 4px; bottom: 4px;
+    opacity: .4; border-radius: 2px; z-index: 4; cursor: pointer;
+  }
+
+  /* ANNOTATION BAR */
+  .ann-bar {
+    background: var(--surface);
+    border-top: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 56px;
+    position: relative;
+  }
+  .ann-bar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent), var(--accent2));
+  }
+
+  .ab-seg {
+    display: flex; flex-direction: column;
+    justify-content: center; gap: 4px;
+    padding: 8px 12px;
+    border-right: 1px solid var(--border);
+    height: 100%;
+  }
+  .ab-seg:last-child { border-right: none; }
+  .ab-lbl {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text3); white-space: nowrap;
+  }
+  .ab-row { display: flex; align-items: center; gap: 5px; }
+
+  .ab-sel {
+    background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text); height: 30px; padding: 0 8px;
+    font-size: 13px; font-family: 'Barlow', sans-serif;
+    min-width: 150px;
+  }
+  .ab-sel:focus { border-color: var(--accent); outline: none; }
+
+  .ttoggle { display: flex; height: 30px; }
+  .ttbtn {
+    padding: 0 11px;
+    border: 1px solid var(--border); background: var(--surface3);
+    color: var(--text2);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .ttbtn:first-child { border-right: none; }
+  .ttbtn.on { background: rgba(62,207,110,0.12); color: var(--accent); border-color: var(--accent); }
+
+  .ab-ti {
+    background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text); height: 30px; padding: 0 7px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    width: 76px;
+  }
+  .ab-ti:focus { border-color: var(--accent); outline: none; }
+
+  .ab-now {
+    background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text2); height: 30px; padding: 0 7px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 11px; letter-spacing: 1px; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .ab-now:hover { color: var(--accent); border-color: var(--accent); }
+
+  .range-arrow { color: var(--text3); font-size: 11px; flex-shrink: 0; }
+
+  .ab-note {
+    background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text); height: 30px; padding: 0 8px;
+    font-family: 'Barlow', sans-serif; font-size: 13px;
+    width: 160px;
+  }
+  .ab-note:focus { border-color: var(--accent); outline: none; }
+
+  .ab-add {
+    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+    border: none; color: #071208;
+    height: 30px; padding: 0 16px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .ab-add:hover { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); }
+
+  .kbd-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text3); line-height: 1.8;
+  }
+  .kbd-hint b { color: var(--accent); font-weight: 500; }
+
+  /* RIGHT SIDEBAR */
+  .sidebar {
+    width: 290px; flex-shrink: 0;
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sport-tabs {
+    display: flex; border-bottom: 1px solid var(--border);
+    overflow-x: auto; flex-shrink: 0;
+    background: var(--bg);
+  }
+  .stab {
+    padding: 8px 11px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text2); cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    white-space: nowrap; transition: all 0.15s;
+  }
+  .stab:hover { color: var(--text); }
+  .stab.on { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .sb-hdr {
+    padding: 9px 11px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .sb-title {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text2);
+  }
+
+  .cls-list {
+    overflow-y: auto; padding: 5px;
+    max-height: 210px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .cls-item {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 8px; border: 1px solid transparent; border-radius: 3px;
+    cursor: pointer; transition: all 0.15s; margin-bottom: 2px;
+  }
+  .cls-item:hover { background: var(--surface2); border-color: var(--border); }
+  .cls-item.on { background: var(--surface3); border-color: var(--accent); }
+  .cls-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .cls-name { font-size: 13px; font-weight: 500; flex: 1; }
+  .cls-cnt {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text3); background: var(--surface3); padding: 1px 5px; border-radius: 8px;
+  }
+  .cls-del {
+    opacity: 0; color: var(--accent3); font-size: 12px;
+    cursor: pointer; padding: 2px 4px; transition: opacity 0.15s;
+  }
+  .cls-item:hover .cls-del { opacity: 1; }
+
+  .add-sport-row {
+    padding: 7px 9px; border-bottom: 1px solid var(--border);
+    display: flex; gap: 5px; flex-shrink: 0;
+  }
+  .add-sport-row input {
+    flex: 1; font-size: 12px; padding: 4px 7px;
+    background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text); outline: none;
+  }
+  .add-sport-row input:focus { border-color: var(--accent); }
+
+  .log-hdr {
+    padding: 7px 11px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .ann-list { flex: 1; overflow-y: auto; padding: 5px; }
+  .ann-item {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 3px; padding: 7px 9px; margin-bottom: 5px;
+    cursor: pointer; transition: all 0.15s; position: relative;
+  }
+  .ann-item:hover { border-color: var(--text2); }
+  .ai-top { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+  .ai-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .ai-cls {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 12px; letter-spacing: 1px; text-transform: uppercase; flex: 1;
+  }
+  .ai-t { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); }
+  .ai-note { font-size: 11px; color: var(--text2); padding-left: 13px; }
+  .ai-del {
+    position: absolute; top: 5px; right: 5px;
+    color: var(--accent3); font-size: 11px; cursor: pointer;
+    opacity: 0; transition: opacity 0.15s; padding: 2px 4px;
+  }
+  .ann-item:hover .ai-del { opacity: 1; }
+
+  .export-sec {
+    padding: 8px 9px; border-top: 1px solid var(--border); flex-shrink: 0;
+  }
+  .export-lbl {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text3); margin-bottom: 5px;
+  }
+  .exp-row { display: flex; gap: 5px; flex-wrap: wrap; }
+
+  /* STATUS BAR */
+  .status-bar {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 3px 16px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text3);
+    display: flex; align-items: center; gap: 20px; flex-shrink: 0;
+  }
+  .status-bar span { color: var(--text2); }
+  .ai-credit {
+    margin-left: auto;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--text3);
+    white-space: nowrap;
+  }
+  .ai-credit em {
+    font-style: normal;
+    color: var(--accent2);
+  }
+
+  .frame-lbl {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text2);
+    padding: 0 8px; white-space: nowrap; min-width: 92px; text-align: center;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 12px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer; border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); transition: all 0.15s; white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface3); border-color: var(--text2); }
+  .btn-a {
+    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+    color: #071208; border-color: var(--accent);
+  }
+  .btn-a:hover { background: linear-gradient(135deg, var(--accent), var(--accent2)); border-color: var(--accent2); }
+  .btn-b {
+    background: linear-gradient(135deg, var(--accent2-dark), var(--accent2));
+    color: #fff; border-color: var(--accent2);
+  }
+  .btn-b:hover { opacity: 0.85; }
+  .btn-d { border-color: var(--accent3); color: var(--accent3); }
+  .btn-d:hover { background: rgba(255,92,58,.1); }
+  .btn-sm { padding: 3px 8px; font-size: 11px; }
+
+  /* MODALS */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.85);
+    z-index: 999; display: none; align-items: center; justify-content: center;
+  }
+  .overlay.on { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    padding: 22px; width: 400px; max-width: 92vw;
+  }
+  .modal-title {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: 19px; letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 16px; color: var(--accent);
+  }
+  .m-row { margin-bottom: 13px; }
+  .m-lbl {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 11px;
+    font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text2); margin-bottom: 5px; display: block;
+  }
+  .m-inp {
+    width: 100%; background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 8px; font-size: 13px;
+    font-family: 'Barlow', sans-serif; outline: none;
+  }
+  .m-inp:focus { border-color: var(--accent); }
+  .m-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+
+  .swatches { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 4px; }
+  .swatch {
+    width: 24px; height: 24px; border-radius: 50%;
+    cursor: pointer; border: 2px solid transparent; transition: transform .15s, border-color .15s;
+  }
+  .swatch:hover { transform: scale(1.15); }
+  .swatch.on { border-color: #fff; }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .drag-over { outline: 2px dashed var(--accent); outline-offset: -2px; }
+
+  /* LOGIN SCREEN */
+  #loginScreen {
+    position: fixed; inset: 0; z-index: 99999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #loginScreen.hidden { display: none; }
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    padding: 36px 32px 28px;
+    width: 360px; max-width: 92vw;
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+  }
+  .login-logo {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
+  }
+  .login-logo-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 26px;
+    letter-spacing: 3px; text-transform: uppercase;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .login-logo-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text2); margin-top: 1px;
+  }
+  .login-title {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--text3); margin-bottom: 22px; align-self: flex-start;
+  }
+  .login-field { width: 100%; margin-bottom: 12px; }
+  .login-lbl {
+    display: block; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text2); margin-bottom: 5px;
+  }
+  .login-inp {
+    width: 100%; background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text); padding: 9px 11px; font-size: 14px;
+    font-family: 'Barlow', sans-serif; outline: none;
+    transition: border-color 0.15s;
+  }
+  .login-inp:focus { border-color: var(--accent); }
+  .login-btn {
+    width: 100%; margin-top: 8px;
+    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+    border: none; color: #071208;
+    padding: 11px 0;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .login-btn:hover { opacity: 0.88; }
+  .login-err {
+    margin-top: 12px; width: 100%;
+    padding: 7px 10px;
+    background: rgba(255,92,58,0.1); border: 1px solid var(--accent3);
+    color: var(--accent3);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    display: none; text-align: center;
+  }
+  .login-err.on { display: block; }
+  .login-user-badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 4px 10px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text3); display: flex; align-items: center; gap: 7px;
+  }
+  .login-user-badge span { color: var(--accent2); }
+  .logout-btn {
+    background: none; border: none; color: var(--accent3);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; padding: 0; transition: opacity 0.15s;
+  }
+  .logout-btn:hover { opacity: 0.7; }
+
+  /* VOLUME CONTROLS */
+  .vol-group {
+    display: flex; align-items: center; gap: 4px;
+    border-left: 1px solid var(--border);
+    padding-left: 8px; margin-left: 4px;
+  }
+  .vol-btn {
+    background: var(--surface3); border: 1px solid var(--border); color: var(--text2);
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px; transition: all 0.15s; flex-shrink: 0;
+    user-select: none;
+  }
+  .vol-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .vol-btn.muted { color: var(--accent3); border-color: var(--accent3); }
+
+  .vol-slider-wrap {
+    position: relative;
+    width: 72px; height: 30px;
+    display: flex; align-items: center;
+  }
+  .vol-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%; height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+  .vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 4px var(--accent);
+    transition: transform 0.15s;
+  }
+  .vol-slider::-webkit-slider-thumb:hover { transform: scale(1.3); }
+  .vol-slider::-moz-range-thumb {
+    width: 12px; height: 12px;
+    border-radius: 50%; border: none;
+    background: var(--accent); cursor: pointer;
+  }
+
+  .vol-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text3);
+    min-width: 28px; text-align: right;
+  }
+
+  /* QUALITY SELECTOR */
+  .quality-group {
+    display: flex; align-items: center; gap: 5px;
+    border-left: 1px solid var(--border);
+    padding-left: 8px; margin-left: 4px;
+  }
+  .quality-lbl {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text3); white-space: nowrap;
+  }
+  .quality-sel {
+    background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text2); padding: 0 6px; height: 30px;
+    font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    cursor: pointer; transition: border-color 0.15s;
+    min-width: 80px;
+  }
+  .quality-sel:focus { border-color: var(--accent); outline: none; }
+  .quality-badge {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    padding: 2px 5px; border-radius: 2px;
+    background: rgba(62,207,110,0.12); color: var(--accent);
+    border: 1px solid rgba(62,207,110,0.3);
+    white-space: nowrap;
+  }
+  .quality-note {
+    font-size: 10px; color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <img class="logo-img" src="/logo.png" alt="" onerror="this.style.display='none'">
+    <div class="logo-text">
+      <div class="logo-name">SportsCue</div>
+      <div class="logo-sub">Sports Annotation Studio</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <input type="file" id="fileInput" accept="video/mp4,video/*" style="display:none">
+    <input type="file" id="sessionInput" accept=".sportscue,application/json" style="display:none">
+    <div class="login-user-badge" id="userBadge" style="display:none;">
+      Signed in as <span id="userBadgeName"></span>
+      <button class="logout-btn" onclick="logout()">Sign out</button>
+    </div>
+    <button class="btn" onclick="document.getElementById('sessionInput').click()" title="Open a previously saved session">⬆ Open Session</button>
+    <button class="btn" onclick="saveSession()" title="Save your progress so you can resume later">💾 Save Session</button>
+    <button class="btn btn-b" onclick="document.getElementById('fileInput').click()">⬆ Load Video</button>
+    <button class="btn btn-a" onclick="openModal('exportModal')">⬇ Export</button>
+  </div>
+</header>
+
+<div class="app-body">
+
+  <div class="video-column">
+    <div class="video-area" id="videoArea"
+         ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragleave="onDragLeave(event)">
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">▶</div>
+        <div class="upload-text">Drop MP4 or click to upload</div>
+        <div class="upload-sub">Supports MP4, MOV, WebM</div>
+        <div class="upload-cta">Browse File</div>
+      </div>
+      <video id="videoPlayer" onclick="togglePlay()"></video>
+      <div class="video-hud">
+        <div class="class-badge" id="classBadge"></div>
+        <div class="range-hud" id="rangeHud"><div class="pulse"></div>RANGE — press E to close</div>
+      </div>
+    </div>
+
+    <div class="timeline-wrap">
+      <div class="timeline-controls">
+        <div class="vc">
+          <div class="cb" onclick="skip(-10)" title="-10s">«</div>
+          <div class="cb" onclick="skip(-5)" title="-5s">‹</div>
+          <div class="cb" onclick="stepFrame(-1)" title="Previous frame (,)">|◂</div>
+          <div class="cb" id="playBtn" onclick="togglePlay()">▶</div>
+          <div class="cb" onclick="stepFrame(1)" title="Next frame (.)">▸|</div>
+          <div class="frame-lbl" id="frameLbl" title="Current frame">F 0</div>
+          <select class="speed-sel" id="fpsSel" onchange="setFps(this.value)" title="Frame rate">
+            <option value="24">24 fps</option>
+            <option value="25">25 fps</option>
+            <option value="30" selected>30 fps</option>
+            <option value="50">50 fps</option>
+            <option value="60">60 fps</option>
+          </select>
+          <div class="cb" onclick="skip(5)" title="+5s">›</div>
+          <div class="cb" onclick="skip(10)" title="+10s">»</div>
+          <select class="speed-sel" onchange="setSpeed(this.value)">
+            <option value="0.25">0.25×</option>
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.5">1.5×</option>
+            <option value="2">2×</option>
+          </select>
+
+          <!-- VOLUME -->
+          <div class="vol-group">
+            <div class="vol-btn" id="muteBtn" onclick="toggleMute()" title="Mute/Unmute">🔊</div>
+            <div class="vol-slider-wrap">
+              <input class="vol-slider" id="volSlider" type="range" min="0" max="100" value="100"
+                     oninput="setVolume(this.value)" title="Volume">
+            </div>
+            <div class="vol-pct" id="volPct">100%</div>
+          </div>
+
+          <!-- QUALITY -->
+          <div class="quality-group">
+            <span class="quality-lbl">Quality</span>
+            <select class="quality-sel" id="qualitySel" onchange="setQuality(this.value)" title="Playback quality">
+              <option value="auto">Auto</option>
+              <option value="2160">4K (2160p)</option>
+              <option value="1440">1440p</option>
+              <option value="1080">1080p HD</option>
+              <option value="720">720p HD</option>
+              <option value="480">480p</option>
+              <option value="360">360p</option>
+              <option value="240">240p</option>
+            </select>
+            <div class="quality-badge" id="qualityBadge">AUTO</div>
+          </div>
+        </div>
+        <div class="td" id="timeDisplay">0:00.0 / 0:00</div>
+      </div>
+      <div class="tbar" id="tbar" onclick="seekTimeline(event)">
+        <div class="tprog" id="tprog"></div>
+        <div id="tmarkers"></div>
+        <div class="tneedle" id="tneedle"></div>
+      </div>
+    </div>
+
+    <div class="ann-bar">
+      <div class="ab-seg">
+        <div class="ab-lbl">Class</div>
+        <div class="ab-row">
+          <select class="ab-sel" id="annClass" onchange="onClassChange()">
+            <option value="">— select —</option>
+          </select>
+        </div>
+      </div>
+      <div class="ab-seg">
+        <div class="ab-lbl">Type</div>
+        <div class="ab-row">
+          <div class="ttoggle">
+            <div class="ttbtn on" id="btnStamp" onclick="setType('timestamp')">Stamp</div>
+            <div class="ttbtn" id="btnRange" onclick="setType('range')">Range</div>
+          </div>
+        </div>
+      </div>
+      <div class="ab-seg" id="segStamp">
+        <div class="ab-lbl">Time</div>
+        <div class="ab-row">
+          <input class="ab-ti" id="annTime" placeholder="0:00.0">
+          <button class="ab-now" onclick="captureTime('annTime')">⏱ Now</button>
+        </div>
+      </div>
+      <div class="ab-seg" id="segRange" style="display:none">
+        <div class="ab-lbl">Start → End</div>
+        <div class="ab-row">
+          <input class="ab-ti" id="annStart" placeholder="Start">
+          <button class="ab-now" onclick="captureTime('annStart')">⏱</button>
+          <span class="range-arrow">→</span>
+          <input class="ab-ti" id="annEnd" placeholder="End">
+          <button class="ab-now" onclick="captureTime('annEnd')">⏱</button>
+        </div>
+      </div>
+      <div class="ab-seg" style="flex:1;">
+        <div class="ab-lbl">Note <span style="color:var(--text3);font-weight:400;">(optional)</span></div>
+        <div class="ab-row">
+          <input class="ab-note" id="annNote" placeholder="Optional note..." style="width:100%;">
+        </div>
+      </div>
+      <div class="ab-seg">
+        <div class="ab-lbl">&nbsp;</div>
+        <div class="ab-row">
+          <button class="ab-add" onclick="addAnnotation()">+ Add</button>
+        </div>
+      </div>
+      <div class="ab-seg" style="border-right:none; min-width:120px;">
+        <div class="kbd-hint">
+          <b>A</b> stamp &nbsp;<b>S</b> rng start<br>
+          <b>E</b> rng end &nbsp;<b>M</b> mute<br>
+          <b>Space</b> play &nbsp;<b>←/→</b> ±5s
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="sidebar">
+    <div class="sport-tabs" id="sportTabs"></div>
+    <div class="sb-hdr">
+      <span class="sb-title">Classes</span>
+      <button class="btn btn-sm btn-a" onclick="openModal('addClassModal')">+ Add</button>
+    </div>
+    <div class="cls-list" id="clsList"></div>
+    <div class="add-sport-row">
+      <input type="text" id="newSportInput" placeholder="New sport name...">
+      <button class="btn btn-sm" onclick="addSport()">+ Sport</button>
+    </div>
+    <div class="log-hdr">
+      <span id="annCount" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);">0 annotations</span>
+      <div style="display:flex;gap:5px;">
+        <input id="annSearch" placeholder="Filter..." style="width:85px;padding:3px 7px;font-size:11px;background:var(--surface3);border:1px solid var(--border);color:var(--text);outline:none;">
+        <button class="btn btn-sm btn-d" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+    <div class="ann-list" id="annList"></div>
+    <div class="export-sec">
+      <div class="export-lbl">Export</div>
+      <div class="exp-row">
+        <button class="btn btn-sm" onclick="exportJSON()">JSON</button>
+        <button class="btn btn-sm" onclick="exportYOLO()">YOLO</button>
+        <button class="btn btn-sm" onclick="exportCSV()">CSV</button>
+        <button class="btn btn-sm" onclick="exportSRT()">SRT</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="status-bar">
+  <div id="stFile">No video loaded</div>
+  <div>Annotations: <span id="stCount">0</span></div>
+  <div id="stClass">No class selected</div>
+  <div id="stMode">Mode: Stamp</div>
+  <div class="ai-credit">Developed by <em>sofiqulselim.com</em></div>
+</div>
+
+<!-- ADD CLASS MODAL -->
+<div class="overlay" id="addClassModal">
+  <div class="modal">
+    <div class="modal-title">Add Class</div>
+    <div class="m-row">
+      <label class="m-lbl">Class Name</label>
+      <input class="m-inp" id="newCls" placeholder="e.g. Puckout, Try, Goal...">
+    </div>
+    <div class="m-row">
+      <label class="m-lbl">Color</label>
+      <div class="swatches" id="colorSwatches"></div>
+    </div>
+    <div class="m-row">
+      <label class="m-lbl">Description <span style="color:var(--text3);font-size:10px;font-weight:400;">(optional)</span></label>
+      <input class="m-inp" id="newClsDesc" placeholder="Brief description...">
+    </div>
+    <div class="m-foot">
+      <button class="btn" onclick="closeModal('addClassModal')">Cancel</button>
+      <button class="btn btn-a" onclick="saveClass()">Add Class</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-title">Export Annotations</div>
+    <div style="margin-bottom:14px;font-size:13px;color:var(--text2);">Choose a format to export your annotations.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+      <button class="btn" style="padding:14px;flex-direction:column;gap:4px;height:auto;" onclick="exportJSON();closeModal('exportModal')">
+        <span style="font-size:18px;">{ }</span><span>JSON</span>
+        <span style="font-size:10px;color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0;">Full structured data</span>
+      </button>
+      <button class="btn" style="padding:14px;flex-direction:column;gap:4px;height:auto;" onclick="exportYOLO();closeModal('exportModal')">
+        <span style="font-size:18px;">⊞</span><span>YOLO</span>
+        <span style="font-size:10px;color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0;">YOLO classification format</span>
+      </button>
+      <button class="btn" style="padding:14px;flex-direction:column;gap:4px;height:auto;" onclick="exportCSV();closeModal('exportModal')">
+        <span style="font-size:18px;">≡</span><span>CSV</span>
+        <span style="font-size:10px;color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0;">Spreadsheet compatible</span>
+      </button>
+      <button class="btn" style="padding:14px;flex-direction:column;gap:4px;height:auto;" onclick="exportSRT();closeModal('exportModal')">
+        <span style="font-size:18px;">▤</span><span>SRT</span>
+        <span style="font-size:10px;color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0;">Subtitle / caption format</span>
+      </button>
+    </div>
+    <div class="m-foot">
+      <button class="btn" onclick="closeModal('exportModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Sign in happens on the server. This page is only sent to people who are signed in,
+// and no passwords exist anywhere in it.
+let _loggedInUser = null;
+
+(async function checkSession() {
+  try {
+    const r = await fetch('/api/me', { credentials: 'same-origin' });
+    if (!r.ok) { location.href = '/login'; return; }
+    const me = await r.json();
+    _loggedInUser = me.username;
+    document.getElementById('userBadge').style.display = 'flex';
+    document.getElementById('userBadgeName').textContent = me.username;
+  } catch (e) { location.href = '/login'; }
+})();
+
+async function logout() {
+  if (!confirm('Sign out? Any unsaved work will be lost.')) return;
+  try { await fetch('/api/logout', { method: 'POST', credentials: 'same-origin', headers: { 'X-Requested-With': 'sportscue' } }); } catch (e) {}
+  location.href = '/login';
+}
+
+const COLORS = ['#3ecf6e','#1a7fc4','#ff5c3a','#ffd060','#b070ff','#ff9f40','#00d4ff','#ff6b9d','#69db7c','#ff8787','#74c0fc','#ffa94d'];
+
+const DEFAULT_SPORTS = {
+ 
+  Football: [
+    {name:'Kickoff',color:'#3ecf6e'},{name:'Goal',color:'#ffd060'},
+    {name:'Corner',color:'#ff5c3a'},{name:'Free Kick',color:'#1a7fc4'},
+    {name:'Tackle',color:'#b070ff'},{name:'Shot',color:'#ff9f40'},
+    {name:'Foul',color:'#ff8787'},{name:'Offside',color:'#74c0fc'},
+  ],
+  Cricket: [
+    {name:'Boundary',color:'#3ecf6e'},{name:'Six',color:'#ffd060'},
+    {name:'Wicket',color:'#ff5c3a'},{name:'No Ball',color:'#ff8787'},
+    {name:'Wide',color:'#b070ff'},{name:'Dot Ball',color:'#1a7fc4'},
+    {name:'Run Out',color:'#ff9f40'},
+  ],
+};
+
+let S = {
+  sports: JSON.parse(JSON.stringify(DEFAULT_SPORTS)),
+  sport: Object.keys(DEFAULT_SPORTS)[0] || '', cls: null, annotations: [],
+  type: 'timestamp', selColor: COLORS[0], videoFile: null,
+};
+
+window.onload = () => {
+  renderSportTabs(); renderCls(); renderSwatches(); renderLog(); updateDropdown(); setupKeys();
+  // init volume slider fill
+  setVolume(100);
+};
+
+const vid = document.getElementById('videoPlayer');
+document.getElementById('fileInput').onchange = e => loadVid(e.target.files[0]);
+
+function loadVid(file) {
+  if (!file) return;
+  S.videoFile = file;
+  vid.src = URL.createObjectURL(file);
+  vid.style.display = 'block';
+  document.getElementById('uploadZone').style.display = 'none';
+  document.getElementById('stFile').textContent = file.name;
+  vid.onloadedmetadata = () => {
+    updateTime();
+    // Show native resolution in quality badge
+    const h = vid.videoHeight;
+    const badge = document.getElementById('qualityBadge');
+    if (h && _qualityPref === 'auto') {
+      badge.textContent = h + 'p';
+      badge.title = `Native: ${vid.videoWidth}×${vid.videoHeight}`;
+    }
+    // Update quality selector to mark native res
+    const sel = document.getElementById('qualitySel');
+    Array.from(sel.options).forEach(opt => {
+      opt.textContent = opt.textContent.replace(' ✓', '');
+      if (opt.value !== 'auto' && parseInt(opt.value) === h) {
+        opt.textContent += ' ✓';
+      }
+    });
+  };
+  vid.ontimeupdate = updateTime;
+  vid.onseeked = updateTime;
+  vid.onplay = detectFps;
+  trackFrames();
+  // Init volume slider fill
+  setVolume(100);
+}
+
+function onDragOver(e) { e.preventDefault(); document.getElementById('videoArea').classList.add('drag-over'); }
+function onDragLeave() { document.getElementById('videoArea').classList.remove('drag-over'); }
+function onDrop(e) { e.preventDefault(); document.getElementById('videoArea').classList.remove('drag-over'); loadVid(e.dataTransfer.files[0]); }
+
+// FRAME-WISE PLAYBACK
+let FPS = 30;
+function frameOf(t) { return Math.floor((t || 0) * FPS + 0.001); }
+function setFps(v) {
+  FPS = parseFloat(v) || 30;
+  updateTime();
+}
+function stepFrame(n) {
+  if (!vid.src || !vid.duration) return;
+  vid.pause();
+  document.getElementById('playBtn').textContent = '▶';
+  const maxF = Math.max(0, Math.ceil(vid.duration * FPS) - 1);
+  const f = Math.max(0, Math.min(maxF, frameOf(vid.currentTime) + n));
+  // aim for the middle of the frame so the browser shows the right one
+  vid.currentTime = Math.min(vid.duration, (f + 0.5) / FPS);
+  updateTime();
+}
+function detectFps() {
+  // use real frame timing during playback to guess the fps
+  if (!('requestVideoFrameCallback' in HTMLVideoElement.prototype)) return;
+  let last = null, samples = [];
+  const cb = (now, meta) => {
+    if (last !== null && meta.mediaTime > last) samples.push(meta.mediaTime - last);
+    last = meta.mediaTime;
+    if (samples.length < 12) { vid.requestVideoFrameCallback(cb); return; }
+    samples.sort((a, b) => a - b);
+    const med = samples[Math.floor(samples.length / 2)];
+    const guess = 1 / med;
+    const opts = [24, 25, 30, 50, 60];
+    const best = opts.reduce((a, b) => Math.abs(b - guess) < Math.abs(a - guess) ? b : a);
+    if (Math.abs(best - guess) < 1.5) {
+      FPS = best;
+      document.getElementById('fpsSel').value = String(best);
+      updateTime();
+    }
+  };
+  vid.requestVideoFrameCallback(cb);
+}
+function trackFrames() {
+  // refresh the UI on every real video frame instead of the slow timeupdate event
+  if (!('requestVideoFrameCallback' in HTMLVideoElement.prototype)) return;
+  const loop = () => { updateTime(); vid.requestVideoFrameCallback(loop); };
+  vid.requestVideoFrameCallback(loop);
+}
+
+function togglePlay() {
+  if (!vid.src) return;
+  vid.paused ? vid.play() : vid.pause();
+  document.getElementById('playBtn').textContent = vid.paused ? '▶' : '⏸';
+}
+function skip(s) { vid.currentTime = Math.max(0, Math.min(vid.duration||0, vid.currentTime+s)); }
+function setSpeed(v) { vid.playbackRate = parseFloat(v); }
+
+// VOLUME
+function setVolume(val) {
+  const v = parseInt(val);
+  vid.volume = v / 100;
+  vid.muted = v === 0;
+  document.getElementById('volPct').textContent = v + '%';
+  updateMuteBtn();
+  // update slider fill gradient
+  const pct = v + '%';
+  document.getElementById('volSlider').style.background =
+    `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}, var(--border) ${pct}, var(--border) 100%)`;
+}
+
+function toggleMute() {
+  vid.muted = !vid.muted;
+  if (vid.muted) {
+    document.getElementById('volSlider').value = 0;
+    document.getElementById('volPct').textContent = '0%';
+    document.getElementById('volSlider').style.background = `linear-gradient(to right, var(--accent) 0%, var(--border) 0%)`;
+  } else {
+    const v = Math.round(vid.volume * 100) || 100;
+    vid.volume = v / 100;
+    document.getElementById('volSlider').value = v;
+    document.getElementById('volPct').textContent = v + '%';
+    setVolume(v);
+  }
+  updateMuteBtn();
+}
+
+function updateMuteBtn() {
+  const btn = document.getElementById('muteBtn');
+  const v = parseInt(document.getElementById('volSlider').value);
+  if (vid.muted || v === 0) {
+    btn.textContent = '🔇'; btn.classList.add('muted');
+  } else if (v < 40) {
+    btn.textContent = '🔉'; btn.classList.remove('muted');
+  } else {
+    btn.textContent = '🔊'; btn.classList.remove('muted');
+  }
+}
+
+// QUALITY
+// Note: browsers don't expose quality control on local files via the <video> element API.
+// This selector stores the user preference and shows a badge. For streaming sources (HLS/DASH)
+// quality switching would be handled by a library like hls.js. For local files we show the
+// native video resolution info after loading and allow the user to tag their preferred quality.
+let _qualityPref = 'auto';
+
+function setQuality(val) {
+  _qualityPref = val;
+  const badge = document.getElementById('qualityBadge');
+  if (val === 'auto') {
+    badge.textContent = 'AUTO';
+    badge.style.color = 'var(--accent)';
+    badge.style.borderColor = 'rgba(62,207,110,0.3)';
+    badge.style.background = 'rgba(62,207,110,0.12)';
+  } else {
+    badge.textContent = val + 'p';
+    badge.style.color = 'var(--accent2)';
+    badge.style.borderColor = 'rgba(26,127,196,0.4)';
+    badge.style.background = 'rgba(26,127,196,0.12)';
+  }
+  // For local MP4: if native video resolution is lower than requested, show a note
+  if (vid.videoHeight && val !== 'auto') {
+    const req = parseInt(val);
+    if (req > vid.videoHeight) {
+      showToast(`Video is ${vid.videoHeight}p — ${val}p not available`);
+      return;
+    }
+  }
+  if (val !== 'auto') showToast(`Quality preference set to ${val}p`);
+}
+
+function updateTime() {
+  const c=vid.currentTime||0, d=vid.duration||0;
+  document.getElementById('timeDisplay').textContent=`${ft(c)} / ${fts(d)}`;
+  const fl=document.getElementById('frameLbl');
+  if(fl)fl.textContent=`F ${frameOf(c)} / ${Math.floor(d*FPS)||0}`;
+  const p=d>0?c/d*100:0;
+  document.getElementById('tprog').style.width=p+'%';
+  document.getElementById('tneedle').style.left=p+'%';
+}
+function ft(s){return`${Math.floor(s/60)}:${(s%60).toFixed(1).padStart(4,'0')}`;}
+function fts(s){return`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;}
+function pt(str){if(!str)return null;str=str.trim();const p=str.split(':');return p.length===2?parseFloat(p[0])*60+parseFloat(p[1]):parseFloat(str);}
+function captureTime(id){document.getElementById(id).value=ft(vid.currentTime||0);}
+function seekTimeline(e){if(!vid.duration)return;const r=e.currentTarget.getBoundingClientRect();vid.currentTime=((e.clientX-r.left)/r.width)*vid.duration;}
+
+function renderMarkers() {
+  const c=document.getElementById('tmarkers');
+  c.innerHTML='';
+  if(!vid.duration)return;
+  S.annotations.forEach(a=>{
+    const cl=getCls(a.sport,a.cls);
+    const col=cl?cl.color:'#888';
+    if(a.type==='range'){
+      const el=document.createElement('div');
+      el.className='trange';
+      el.style.left=(a.s/vid.duration*100)+'%';
+      el.style.width=Math.max((a.e-a.s)/vid.duration*100,.4)+'%';
+      el.style.background=col;
+      el.title=`${a.cls} [${ft(a.s)} → ${ft(a.e)}]`;
+      el.onclick=ev=>{ev.stopPropagation();vid.currentTime=a.s;};
+      c.appendChild(el);
+    }else{
+      const el=document.createElement('div');
+      el.className='tmarker';
+      el.style.left=(a.t/vid.duration*100)+'%';
+      el.style.background=col;
+      el.title=`${a.cls} @ ${ft(a.t)}`;
+      el.onclick=ev=>{ev.stopPropagation();vid.currentTime=a.t;};
+      c.appendChild(el);
+    }
+  });
+}
+
+function setType(type){
+  S.type=type;
+  document.getElementById('btnStamp').classList.toggle('on',type==='timestamp');
+  document.getElementById('btnRange').classList.toggle('on',type==='range');
+  document.getElementById('segStamp').style.display=type==='timestamp'?'':'none';
+  document.getElementById('segRange').style.display=type==='range'?'':'none';
+  document.getElementById('stMode').textContent='Mode: '+(type==='range'?'Range':'Stamp');
+}
+
+function renderSportTabs(){
+  const c=document.getElementById('sportTabs');c.innerHTML='';
+  Object.keys(S.sports).forEach(sp=>{
+    const t=document.createElement('div');
+    t.className='stab'+(sp===S.sport?' on':'');
+    t.textContent=sp;t.onclick=()=>selectSport(sp);
+    c.appendChild(t);
+  });
+}
+function selectSport(sp){S.sport=sp;S.cls=null;renderSportTabs();renderCls();updateDropdown();updateBadge();}
+function addSport(){
+  const n=document.getElementById('newSportInput').value.trim();
+  if(!n)return;if(S.sports[n]){alert('Sport already exists');return;}
+  S.sports[n]=[];document.getElementById('newSportInput').value='';
+  S.sport=n;renderSportTabs();renderCls();updateDropdown();
+}
+function renderCls(){
+  const list=document.getElementById('clsList');list.innerHTML='';
+  const cls=S.sports[S.sport]||[];
+  if(!cls.length){list.innerHTML='<div style="padding:14px;text-align:center;color:var(--text3);font-size:12px;">No classes yet. Click "+ Add".</div>';return;}
+  cls.forEach(c=>{
+    const cnt=S.annotations.filter(a=>a.sport===S.sport&&a.cls===c.name).length;
+    const el=document.createElement('div');
+    el.className='cls-item'+(S.cls===c.name?' on':'');
+    el.innerHTML=`<div class="cls-dot" style="background:${c.color}"></div><div class="cls-name">${c.name}</div><div class="cls-cnt">${cnt}</div><div class="cls-del" onclick="delCls(event,'${c.name}')">✕</div>`;
+    el.onclick=()=>selectCls(c.name);list.appendChild(el);
+  });
+}
+function selectCls(name){S.cls=name;renderCls();document.getElementById('annClass').value=name;updateBadge();document.getElementById('stClass').textContent='Class: '+name;}
+function onClassChange(){const v=document.getElementById('annClass').value;if(v)selectCls(v);}
+function updateBadge(){
+  const b=document.getElementById('classBadge');
+  if(!S.cls){b.style.display='none';return;}
+  const c=getCls(S.sport,S.cls);
+  if(c){b.textContent=S.cls;b.style.display='block';b.style.background=c.color+'22';b.style.border=`1px solid ${c.color}`;b.style.color=c.color;}
+}
+function getCls(sport,name){return(S.sports[sport]||[]).find(c=>c.name===name);}
+function delCls(e,name){
+  e.stopPropagation();
+  if(!confirm(`Delete "${name}"?`))return;
+  S.sports[S.sport]=S.sports[S.sport].filter(c=>c.name!==name);
+  S.annotations=S.annotations.filter(a=>!(a.sport===S.sport&&a.cls===name));
+  if(S.cls===name)S.cls=null;
+  renderCls();renderLog();updateDropdown();renderMarkers();
+}
+function updateDropdown(){
+  const sel=document.getElementById('annClass');const prev=sel.value;
+  sel.innerHTML='<option value="">— select —</option>';
+  (S.sports[S.sport]||[]).forEach(c=>{const o=document.createElement('option');o.value=c.name;o.textContent=c.name;sel.appendChild(o);});
+  if(prev&&(S.sports[S.sport]||[]).find(c=>c.name===prev))sel.value=prev;
+}
+
+function addAnnotation(){
+  const cls=document.getElementById('annClass').value;
+  if(!cls){alert('Select a class first');return;}
+  const note=document.getElementById('annNote').value.trim();
+  const c=getCls(S.sport,cls);const col=c?c.color:'#888';
+  if(S.type==='timestamp'){
+    const t=pt(document.getElementById('annTime').value)??(vid.currentTime||0);
+    if(isNaN(t)){alert('Invalid time');return;}
+    S.annotations.push({id:Date.now()+Math.random(),sport:S.sport,cls,type:'timestamp',t,ts:ft(t),note,color:col,at:new Date().toISOString()});
+    document.getElementById('annTime').value='';
+  }else{
+    const s=pt(document.getElementById('annStart').value);
+    const e=pt(document.getElementById('annEnd').value);
+    if(s==null||isNaN(s)){alert('Invalid start time');return;}
+    if(e==null||isNaN(e)){alert('Invalid end time');return;}
+    if(e<=s){alert('End must be after start');return;}
+    S.annotations.push({id:Date.now()+Math.random(),sport:S.sport,cls,type:'range',s,e,ss:ft(s),es:ft(e),note,color:col,at:new Date().toISOString()});
+    document.getElementById('annStart').value='';document.getElementById('annEnd').value='';
+  }
+  document.getElementById('annNote').value='';
+  refresh();showToast('Annotation saved');
+}
+
+function delAnn(id){S.annotations=S.annotations.filter(a=>a.id!==id);refresh();}
+function clearAll(){if(!confirm('Clear all annotations?'))return;S.annotations=[];refresh();}
+
+function renderLog(){
+  const list=document.getElementById('annList');
+  const q=document.getElementById('annSearch').value.toLowerCase();
+  const filtered=S.annotations
+    .filter(a=>!q||a.cls.toLowerCase().includes(q)||(a.note||'').toLowerCase().includes(q))
+    .sort((a,b)=>(a.type==='timestamp'?a.t:a.s)-(b.type==='timestamp'?b.t:b.s));
+  list.innerHTML='';
+  if(!filtered.length){list.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px;">No annotations yet.</div>';return;}
+  filtered.forEach(a=>{
+    const el=document.createElement('div');el.className='ann-item';
+    const tl=a.type==='range'?`${a.ss}→${a.es}`:a.ts;
+    el.innerHTML=`<div class="ai-top"><div class="ai-dot" style="background:${a.color}"></div><div class="ai-cls">${a.cls}</div><div class="ai-t">${tl}</div></div>${a.note?`<div class="ai-note">${a.note}</div>`:''}${a.sport!==S.sport?`<div style="padding-left:13px;margin-top:2px;font-size:10px;color:var(--text3);">${a.sport}</div>`:''}<div class="ai-del" onclick="delAnn(${a.id})">✕</div>`;
+    const jt=a.type==='timestamp'?a.t:a.s;
+    el.onclick=e=>{if(!e.target.classList.contains('ai-del'))vid.currentTime=jt;};
+    list.appendChild(el);
+  });
+  const n=S.annotations.length;
+  document.getElementById('annCount').textContent=n+' annotation'+(n!==1?'s':'');
+  document.getElementById('stCount').textContent=n;
+}
+
+document.getElementById('annSearch').oninput=renderLog;
+function refresh(){renderCls();renderLog();renderMarkers();document.getElementById('stCount').textContent=S.annotations.length;}
+
+let qRS=null;
+function setupKeys(){
+  document.addEventListener('keydown',e=>{
+    if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))return;
+    if(e.code==='Space'){e.preventDefault();togglePlay();}
+    else if(e.code==='ArrowLeft'){e.preventDefault();e.shiftKey?skip(-5):stepFrame(-1);}
+    else if(e.code==='ArrowRight'){e.preventDefault();e.shiftKey?skip(5):stepFrame(1);}
+    else if(e.code==='Comma')stepFrame(-1);
+    else if(e.code==='Period')stepFrame(1);
+    else if(e.code==='KeyM')toggleMute();
+    else if(e.code==='KeyA')kStamp();
+    else if(e.code==='KeyS')kRS();
+    else if(e.code==='KeyE')kRE();
+  });
+}
+function kStamp(){
+  if(!S.cls){showToast('Select a class first');return;}
+  const c=getCls(S.sport,S.cls);const t=vid.currentTime||0;
+  S.annotations.push({id:Date.now()+Math.random(),sport:S.sport,cls:S.cls,type:'timestamp',t,ts:ft(t),note:'',color:c?c.color:'#888',at:new Date().toISOString()});
+  showToast(`✓ ${S.cls} @ ${ft(t)}`);refresh();
+}
+function kRS(){
+  if(!S.cls){showToast('Select a class first');return;}
+  qRS=vid.currentTime||0;document.getElementById('rangeHud').classList.add('on');showToast(`Range start: ${ft(qRS)}`);
+}
+function kRE(){
+  if(!S.cls){showToast('Select a class first');return;}
+  if(qRS==null){showToast('Press S for range start first');return;}
+  const e=vid.currentTime||0;if(e<=qRS){showToast('End must be after start');return;}
+  const c=getCls(S.sport,S.cls);
+  S.annotations.push({id:Date.now()+Math.random(),sport:S.sport,cls:S.cls,type:'range',s:qRS,e,ss:ft(qRS),es:ft(e),note:'',color:c?c.color:'#888',at:new Date().toISOString()});
+  showToast(`✓ ${S.cls} [${ft(qRS)} → ${ft(e)}]`);
+  qRS=null;document.getElementById('rangeHud').classList.remove('on');refresh();
+}
+
+function showToast(msg){
+  let t=document.getElementById('_toast');
+  if(!t){t=document.createElement('div');t.id='_toast';t.style.cssText='position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--accent);color:var(--accent);font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:6px 16px;z-index:9999;pointer-events:none;transition:opacity .3s;';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2000);
+}
+
+function openModal(id){document.getElementById(id).classList.add('on');}
+function closeModal(id){document.getElementById(id).classList.remove('on');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+
+function renderSwatches(){
+  const c=document.getElementById('colorSwatches');c.innerHTML='';
+  COLORS.forEach(col=>{const s=document.createElement('div');s.className='swatch'+(col===S.selColor?' on':'');s.style.background=col;s.onclick=()=>{S.selColor=col;renderSwatches();};c.appendChild(s);});
+}
+function saveClass(){
+  const name=document.getElementById('newCls').value.trim();
+  if(!name){alert('Enter a class name');return;}
+  if((S.sports[S.sport]||[]).find(c=>c.name===name)){alert('Class already exists');return;}
+  (S.sports[S.sport]=S.sports[S.sport]||[]).push({name,color:S.selColor,desc:document.getElementById('newClsDesc').value.trim()});
+  closeModal('addClassModal');renderCls();updateDropdown();selectCls(name);
+}
+
+function vname(){return S.videoFile?S.videoFile.name.replace(/\.[^.]+$/,''):'annotations';}
+function exportJSON(){
+  const data={version:'1.0',video:S.videoFile?.name||null,duration:vid.duration||0,exportedAt:new Date().toISOString(),sports:Object.fromEntries(Object.entries(S.sports).map(([sp,cls])=>[sp,cls.map(c=>({name:c.name,color:c.color}))])),annotations:S.annotations.map(a=>({id:a.id,sport:a.sport,class:a.cls,type:a.type,...(a.type==='timestamp'?{time:a.t,timeFormatted:a.ts}:{startTime:a.s,endTime:a.e,startFormatted:a.ss,endFormatted:a.es,duration:a.e-a.s}),note:a.note||'',createdAt:a.at}))};
+  dl(JSON.stringify(data,null,2),vname()+'_annotations.json','application/json');
+}
+function exportYOLO(){
+  const cls=[];
+  Object.entries(S.sports).forEach(([sp,c])=>c.forEach(x=>{const k=`${sp}__${x.name}`;if(!cls.includes(k))cls.push(k);}));
+  const dur=vid.duration||1;
+  const lines=S.annotations.map(a=>{const i=cls.indexOf(`${a.sport}__${a.cls}`);return a.type==='timestamp'?`${i} ${(a.t/dur).toFixed(6)} 0.0 1.0 0.0 0.0`:`${i} ${(a.s/dur).toFixed(6)} ${(a.e/dur).toFixed(6)} 1.0 0.0 0.0`;});
+  dl(lines.join('\n'),vname()+'_annotations.txt','text/plain');
+  setTimeout(()=>dl(cls.map((c,i)=>`${i}: ${c}`).join('\n'),vname()+'_classes.txt','text/plain'),300);
+}
+function exportCSV(){
+  const rows=[['ID','Sport','Class','Type','Time','StartTime','EndTime','Duration','Note','CreatedAt']];
+  S.annotations.forEach(a=>rows.push([a.id,a.sport,a.cls,a.type,a.type==='timestamp'?a.ts:'',a.type==='range'?a.ss:'',a.type==='range'?a.es:'',a.type==='range'?(a.e-a.s).toFixed(1):'',a.note||'',a.at]));
+  dl(rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'),vname()+'_annotations.csv','text/csv');
+}
+function exportSRT(){
+  const sorted=[...S.annotations].sort((a,b)=>(a.type==='timestamp'?a.t:a.s)-(b.type==='timestamp'?b.t:b.s));
+  const toSRT=s=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${(s%60).toFixed(3).replace('.',',').padStart(6,'0')}`;};
+  dl(sorted.map((a,i)=>{const s=a.type==='timestamp'?a.t:a.s,e=a.type==='timestamp'?a.t+2:a.e;return`${i+1}\n${toSRT(s)} --> ${toSRT(e)}\n[${a.sport}] ${a.cls}${a.note?'\n'+a.note:''}`;}).join('\n\n'),vname()+'_annotations.srt','text/plain');
+}
+function dl(content,filename,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=filename;a.click();}
+
+// ── SESSION SAVE / OPEN ──────────────────────────────────────────────────────
+
+function saveSession(){
+  if(!S.annotations.length && !Object.values(S.sports).some(c=>c.length)){
+    showToast('Nothing to save yet');return;
+  }
+  const session={
+    _type:'sportscue-session',
+    version:'1.0',
+    savedAt:new Date().toISOString(),
+    videoName:S.videoFile?S.videoFile.name:null,
+    videoDuration:vid.duration||0,
+    currentTime:vid.currentTime||0,
+    sport:S.sport,
+    cls:S.cls,
+    annotationType:S.type,
+    sports:JSON.parse(JSON.stringify(S.sports)),
+    annotations:JSON.parse(JSON.stringify(S.annotations)),
+  };
+  const name=(S.videoFile?S.videoFile.name.replace(/\.[^.]+$/,''):'session')
+    +'_'+new Date().toISOString().slice(0,10);
+  dl(JSON.stringify(session,null,2),name+'.sportscue','application/json');
+  showToast('Session saved — '+S.annotations.length+' annotation'+(S.annotations.length!==1?'s':''));
+}
+
+document.getElementById('sessionInput').onchange=function(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    let session;
+    try{session=JSON.parse(ev.target.result);}
+    catch(err){alert('Could not read session file. Make sure it is a valid .sportscue file.');return;}
+    if(!session||session._type!=='sportscue-session'){
+      alert('This does not look like a SportsCue session file.');return;
+    }
+    S.sports=session.sports||JSON.parse(JSON.stringify(DEFAULT_SPORTS));
+    S.annotations=session.annotations||[];
+    S.sport=session.sport||Object.keys(S.sports)[0]||'Hurling';
+    S.cls=session.cls||null;
+    S.type=session.annotationType||'timestamp';
+    setType(S.type);
+    renderSportTabs();renderCls();renderLog();updateDropdown();updateBadge();
+    if(vid.src&&session.currentTime){
+      vid.currentTime=session.currentTime;
+    }
+    if(!S.videoFile&&session.videoName){
+      showToast('Session loaded — please reload video: '+session.videoName);
+    }else{
+      showToast('Session loaded — '+S.annotations.length+' annotation'+(S.annotations.length!==1?'s':'')+' restored');
+    }
+    if(session.videoName&&(!S.videoFile||S.videoFile.name!==session.videoName)){
+      setTimeout(()=>{
+        const reload=confirm('This session was made with "'+session.videoName+'".\n\nDo you want to load that video now?');
+        if(reload)document.getElementById('fileInput').click();
+      },400);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+};
+</script>
+</body>
+</html>
